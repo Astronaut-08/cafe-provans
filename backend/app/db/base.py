@@ -6,3 +6,8 @@ class Base(DeclarativeBase):
 
 from models.location import Location
 from models.user import User
+from models.dish_location import DishLocation
+from models.dish_allergen import DishAllergen
+from models.dish import Dish
+from models.allergen import Allergen
+from models.category import Category
