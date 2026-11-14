@@ -11,3 +11,10 @@ from models.dish_allergen import DishAllergen
 from models.dish import Dish
 from models.allergen import Allergen
 from models.category import Category
+from models.customer_address import CustomerAddress
+from models.customer import Customer
+from models.order_item import OrderItem
+from models.order import Order
+from models.promotion_item import PromotionItem
+from models.promotion_location import PromotionLocation
+from models.promotion import Promotion
