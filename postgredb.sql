@@ -1,3 +1,5 @@
+CREATE DATABASE cafe_provans_db;
+\c cafe_provans_db;
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE TYPE "user_role" AS ENUM (
@@ -136,7 +138,7 @@ CREATE TABLE "promotions" (
   "show_on_home" boolean NOT NULL DEFAULT false,
   "pause_if_unavailable" boolean NOT NULL DEFAULT true,
   "embedding" vector(1536),
-  "created_at" timestamptz NOT NULL DEFAULT (now())
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
   "embedding_model" varchar(100),
   "embedding_updated_at" timestamptz NOT NULL DEFAULT (now()),
   "embedding_content_hash" varchar(64)
@@ -302,11 +304,11 @@ CREATE INDEX ON "ai_messages" ("dialog_id", "created_at");
 
 CREATE INDEX idx_dishes_embedding
 ON "dishes"
-USING "hnsw" ("embedding", "vector_cosine_ops");
+USING hnsw (embedding vector_cosine_ops);
 
 CREATE INDEX idx_promotions_embedding
 ON "promotions"
-USING "hnsw" ("embedding", "vector_cosine_ops");
+USING hnsw (embedding vector_cosine_ops);
 
 COMMENT ON TABLE "users" IS 'Тільки персонал (адмін, менеджер, оператор). Гості в customers';
 
