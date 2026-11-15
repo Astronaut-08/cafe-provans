@@ -19,7 +19,7 @@ class Promotion(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[PromotionStatus] = mapped_column(SQLEnum(PromotionStatus), default=PromotionStatus.draft, nullable=False)
+    status: Mapped[PromotionStatus] = mapped_column(SQLEnum(PromotionStatus, name='promotion_status'), default=PromotionStatus.draft, nullable=False)
     custom_price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=True)
     auto_calculate_price: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     start_time: Mapped[time] = mapped_column(Time, nullable=True)

@@ -18,7 +18,7 @@ class AiDialog(Base):
     location_id: Mapped[int] = mapped_column(ForeignKey('locations.id'), nullable=False)
     channel: Mapped[str] = mapped_column(String, nullable=False)
     external_chat_id: Mapped[str] = mapped_column(String, nullable=True)
-    status: Mapped[DialogStatus] = mapped_column(SQLEnum(DialogStatus), default=DialogStatus.active, nullable=False)
+    status: Mapped[DialogStatus] = mapped_column(SQLEnum(DialogStatus, name='dialog_status'), default=DialogStatus.active, nullable=False)
     dialog_state: Mapped[dict | list] = mapped_column(JSONB, nullable=True)
     verified_by: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=True)
     verified_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)

@@ -9,7 +9,7 @@ class OrderStatusHistory(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     order_id: Mapped[int] = mapped_column(ForeignKey('orders.id'), nullable=False)
-    status: Mapped[OrderStatus] = mapped_column(SQLEnum(OrderStatus), default=OrderStatus.new, nullable=False)
+    status: Mapped[OrderStatus] = mapped_column(SQLEnum(OrderStatus, name='order_status', create_type=False), default=OrderStatus.new, nullable=False)
     changed_by: Mapped[int] = mapped_column(ForeignKey('users.id'), nullable=True)
     comment: Mapped[str] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

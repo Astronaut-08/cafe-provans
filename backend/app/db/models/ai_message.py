@@ -17,7 +17,7 @@ class AiMessage(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     dialog_id: Mapped[int] = mapped_column(ForeignKey('ai_dialogs.id'), nullable=False)
-    role: Mapped[MessageRole] = mapped_column(SQLEnum(MessageRole), default=MessageRole.system, nullable=False)
+    role: Mapped[MessageRole] = mapped_column(SQLEnum(MessageRole, name='message_role'), default=MessageRole.system, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     meta: Mapped[dict | list] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
