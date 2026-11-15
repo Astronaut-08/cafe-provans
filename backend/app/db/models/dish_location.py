@@ -6,8 +6,8 @@ from app.db.base import Base
 class DishLocation(Base):
     __tablename__ = 'dish_locations'
 
-    dish_id: Mapped[int] = mapped_column(ForeignKey('dishes.id'), nullable=False)
-    location_id: Mapped[int] = mapped_column(ForeignKey('locations.id'), nullable=False)
+    dish_id: Mapped[int] = mapped_column(ForeignKey('dishes.id'), nullable=False, primary_key=True)
+    location_id: Mapped[int] = mapped_column(ForeignKey('locations.id'), nullable=False, primary_key=True)
     is_available: Mapped[bool] = mapped_column(Boolean, nullable=False)
     price_override: Mapped[Decimal] = mapped_column(Numeric(10, 2))
     

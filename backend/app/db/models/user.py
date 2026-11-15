@@ -17,5 +17,5 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(70), nullable=False)
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole, name='user_role'), default=UserRole.waiter, nullable=False)
     location_id: Mapped[int | None] = mapped_column(ForeignKey('locations.id'), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     

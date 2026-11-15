@@ -1,2 +1,6 @@
 # Alembic
 alembic/__pycache__/
+
+app/__pycache__/
+app/db/__pycache__/
+app/db/models/__pycache__/

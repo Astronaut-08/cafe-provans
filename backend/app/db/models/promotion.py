@@ -29,5 +29,5 @@ class Promotion(Base):
     show_on_home: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     pause_if_unavailable: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     embedding: Mapped[List[float]] = mapped_column(Vector(1536), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     

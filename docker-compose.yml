@@ -1,4 +1,16 @@
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d  # Папка з вашими .conf файлами
+    depends_on:
+      - backend
+    networks:
+      - app-network
   # 1. База даних: PostgreSQL 17 з підтримкою pgvector з коробки
   db:
     image: pgvector/pgvector:pg17
@@ -11,7 +23,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - app-net
+      - app-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
@@ -29,14 +41,18 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - DATABASE_URL=postgresql+asyncpg://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
     networks:
-      - app-net
+      - app-network
     expose:
       - "8000"
+    volumes:
+      - .backend:/app
 
   # 3. Фронтенд: React + Vite (роздається через Nginx)
   frontend:
@@ -46,15 +62,15 @@ services:
     container_name: app_frontend
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "3000:80"
     depends_on:
       - backend
     networks:
-      - app-net
+      - app-network
 
 volumes:
   postgres_data:
 
 networks:
-  app-net:
+  app-network:
     driver: bridge

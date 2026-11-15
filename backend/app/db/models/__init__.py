@@ -1,31 +1,33 @@
+from app.db.base import Base
+
 # user group
-from models.location import Location
-from models.user import User
+from app.db.models.location import Location
+from app.db.models.user import User
 
 # dish group
-from models.dish_location import DishLocation
-from models.dish_allergen import DishAllergen
-from models.dish import Dish
-from models.allergen import Allergen
-from models.category import Category
+from app.db.models.dish_location import DishLocation
+from app.db.models.dish_allergen import DishAllergen
+from app.db.models.dish import Dish
+from app.db.models.allergen import Allergen
+from app.db.models.category import Category
 
 # customer group
-from models.customer_address import CustomerAddress
-from models.customer import Customer
+from app.db.models.customer_address import CustomerAddress
+from app.db.models.customer import Customer
 
 # order group
-from models.order_item import OrderItem
-from models.order import Order
-from models.order_status_history import OrderStatusHistory
-from models.payment import Payment
+from app.db.models.order_item import OrderItem
+from app.db.models.order import Order
+from app.db.models.order_status_history import OrderStatusHistory
+from app.db.models.payment import Payment
 
 # promotion group
-from models.promotion_item import PromotionItem
-from models.promotion_location import PromotionLocation
-from models.promotion import Promotion
+from app.db.models.promotion_item import PromotionItem
+from app.db.models.promotion_location import PromotionLocation
+from app.db.models.promotion import Promotion
 
 # ai group
-from models.ai_dialog import AiDialog
-from models.ai_escalation_trigger import AiEscalationTrigger
-from models.ai_setting import AiSetting
-from models.ai_message import AiMessage
+from app.db.models.ai_dialog import AiDialog
+from app.db.models.ai_escalation_trigger import AiEscalationTrigger
+from app.db.models.ai_setting import AiSetting
+from app.db.models.ai_message import AiMessage

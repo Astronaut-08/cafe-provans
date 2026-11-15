@@ -20,4 +20,4 @@ class AiMessage(Base):
     role: Mapped[MessageRole] = mapped_column(SQLEnum(MessageRole, name='message_role'), default=MessageRole.system, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     meta: Mapped[dict | list] = mapped_column(JSONB, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)

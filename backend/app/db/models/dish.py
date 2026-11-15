@@ -21,4 +21,4 @@ class Dish(Base):
     is_available: Mapped[bool] = mapped_column(Boolean, nullable=False)
     show_on_home: Mapped[bool] = mapped_column(Boolean, nullable=False)
     embedding: Mapped[List[float]] = mapped_column(Vector(1536), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)

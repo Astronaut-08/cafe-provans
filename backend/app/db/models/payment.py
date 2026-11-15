@@ -3,7 +3,7 @@ from sqlalchemy import String, Numeric, ForeignKey, DateTime, Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime, timezone
 from decimal import Decimal
-from order import PaymentStatus
+from app.db.models.order import PaymentStatus
 from app.db.base import Base
 
 class Payment(Base):
@@ -14,6 +14,6 @@ class Payment(Base):
     provider: Mapped[str] = mapped_column(String, nullable=False)
     external_id: Mapped[str] = mapped_column(String, nullable=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
-    status: Mapped[PaymentStatus] = mapped_column(SQLEnum(PaymentStatus, name='payment_status', create_type=False), default=PaymentStatus.unpaid, nullable=False)
+    status: Mapped[PaymentStatus] = mapped_column(SQLEnum(PaymentStatus, name='payment_status'), default=PaymentStatus.unpaid, nullable=False)
     raw_payload: Mapped[dict | list] = mapped_column(JSONB, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
