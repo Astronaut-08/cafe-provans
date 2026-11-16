@@ -42,7 +42,7 @@ services:
       db:
         condition: service_healthy
     command: >
-      sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+      sh -c "alembic -c alembic.ini upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
     env_file:
       - .env
     environment:
@@ -52,7 +52,7 @@ services:
     expose:
       - "8000"
     volumes:
-      - .backend:/app
+      - ./backend:/app
 
   # 3. Фронтенд: React + Vite (роздається через Nginx)
   frontend:

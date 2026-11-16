@@ -1,13 +1,16 @@
+from datetime import datetime
+
+from sqlalchemy import DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, DateTime
-from datetime import datetime, timezone
+
 from app.db.base import Base
 
+
 class Customer(Base):
+    """Гість. Створюється за телефоном, ім'я може з'явитися пізніше (AI збирає його в діалозі)."""
     __tablename__ = 'customers'
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    phone: Mapped[str] = mapped_column(String(20), nullable=False)
-    full_name: Mapped[str] = mapped_column(String(200), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
-    
+    phone: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
+    full_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
