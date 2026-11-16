@@ -8,3 +8,5 @@ app/db/models/__pycache__/
 # Python
 __pycache__/
 *.pyc
+
+.pytest_cache/
