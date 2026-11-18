@@ -33,8 +33,9 @@ class Dish(Base):
     badge: Mapped[str | None] = mapped_column(String(200), nullable=True)  # значок на картці
     is_available: Mapped[bool] = mapped_column(Boolean, server_default=text('true'), nullable=False)
     show_on_home: Mapped[bool] = mapped_column(Boolean, server_default=text('false'), nullable=False)
-    # NULL = embedding ще не порахований
-    embedding: Mapped[list[float] | None] = mapped_column(Vector(1536), nullable=True)
+    # NULL = embedding ще не порахований. deferred: вектор із 1536 чисел не вантажиться, поки
+    # його явно не попросять (інакше кожен запит зі стравами тягнув би їх тисячами даремно)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(1536), nullable=True, deferred=True)
     embedding_model: Mapped[str | None] = mapped_column(String(100), nullable=True)
     embedding_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     embedding_content_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)

@@ -66,3 +66,32 @@ def test_location_update_nulls():
     assert LocationUpdate(address=None).address is None  # необов'язкове поле можна очистити
     with pytest.raises(ValidationError):
         LocationUpdate(name=None)
+
+
+def test_location_city_and_map_are_optional_and_clearable():
+    created = LocationCreate(name='Provans')
+    assert created.city is None and created.delivery_map_url is None
+    assert LocationCreate(name='Provans', city='Болехів').city == 'Болехів'
+    update = LocationUpdate(city=None, delivery_map_url=None)
+    assert update.city is None and update.delivery_map_url is None   # місто й карту можна прибрати
+
+
+@pytest.mark.parametrize('url', [
+    'javascript:alert(1)',
+    'data:text/html,<script>alert(1)</script>',
+    'http://www.google.com/maps/d/embed?mid=x',       # змішаний вміст на https-сайті
+    '//www.google.com/maps/d/embed?mid=x',
+    'www.google.com/maps/d/embed?mid=x',
+])
+def test_map_url_must_be_https_because_it_goes_into_an_iframe(url):
+    with pytest.raises(ValidationError, match='https://'):
+        LocationCreate(name='Provans', delivery_map_url=url)
+    with pytest.raises(ValidationError, match='https://'):
+        LocationUpdate(delivery_map_url=url)
+
+
+def test_map_url_https_is_accepted_and_has_a_length_limit():
+    ok = 'https://www.google.com/maps/d/embed?mid=18hNmLUbGNEeWuByxKwuwh4IIhX7Xh8M&ehbc=2E312F'
+    assert LocationCreate(name='Provans', delivery_map_url=ok).delivery_map_url == ok
+    with pytest.raises(ValidationError):
+        LocationCreate(name='Provans', delivery_map_url='https://example.com/' + 'a' * 500)

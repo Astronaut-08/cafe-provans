@@ -67,21 +67,29 @@ DEMO_MENU = {
 }
 
 
+async def seed_delivery_zones(s: AsyncSession, location_id: int) -> None:
+    """Стандартні зелена/жовта/червона зони закладу з мінімальними сумами. Ідемпотентно: наявні зони й
+    зміни адміністратора в них не чіпаємо. Викликається для кожного нового закладу (адмінка теж)."""
+    await s.execute(
+        insert(DeliveryZone).values([
+            dict(location_id=location_id, code=code, name=name, min_order_amount=amount, sort_order=order)
+            for code, name, amount, order in DELIVERY_ZONES
+        ]).on_conflict_do_nothing(constraint='uq_delivery_zones_location_id_code')
+    )
+
+
 async def seed_required(s: AsyncSession) -> Location:
-    location = (await s.execute(select(Location).where(Location.name == LOCATION_NAME))).scalar_one_or_none()
+    # Усі заклади мережі називаються однаково (Provans), тож за назвою заклад не знайти: беремо перший за id.
+    # Свій заклад створюємо лише на порожній БД; далі закладами керує адміністратор.
+    location = (await s.execute(select(Location).order_by(Location.id).limit(1))).scalar_one_or_none()
     if location is None:
-        # адресу, телефон і години роботи адмін внесе сам: вигадувати їх не можна
+        # місто, адресу, телефон і години роботи адмін внесе сам: вигадувати їх не можна
         location = Location(name=LOCATION_NAME)
         s.add(location)
         await s.flush()
 
     # ON CONFLICT DO NOTHING: існуючі зони/алергени (і зміни адміна в них) не чіпаємо
-    await s.execute(
-        insert(DeliveryZone).values([
-            dict(location_id=location.id, code=code, name=name, min_order_amount=amount, sort_order=order)
-            for code, name, amount, order in DELIVERY_ZONES
-        ]).on_conflict_do_nothing(constraint='uq_delivery_zones_location_id_code')
-    )
+    await seed_delivery_zones(s, location.id)
     await s.execute(
         insert(Allergen).values([dict(code=code, name=name) for code, name in ALLERGENS])
         .on_conflict_do_nothing(constraint='uq_allergens_code')

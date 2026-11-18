@@ -11,7 +11,11 @@ class Location(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(70), nullable=False)
+    # Усі заклади мережі називаються однаково (Provans), тож відрізняються лише містом і адресою.
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
     address: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # Посилання для показу карти зон на сайті (напр. вбудовування Google My Maps). Вносить адміністратор.
+    delivery_map_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     instagram: Mapped[str | None] = mapped_column(String(150), nullable=True)
     opening_time: Mapped[time | None] = mapped_column(Time, nullable=True)

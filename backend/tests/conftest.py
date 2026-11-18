@@ -126,6 +126,18 @@ async def client(application):
 
 
 @pytest.fixture
+def set_now(application):
+    """set_now(datetime): «поточний момент» для маршрутів, що залежать від часу (години роботи, акції).
+    Без виклику береться справжній час. Момент має бути aware (з поясом), найпростіше в UTC."""
+    from app.dependencies import get_now
+
+    def _set(moment) -> None:
+        application.dependency_overrides[get_now] = lambda: moment
+
+    return _set
+
+
+@pytest.fixture
 def login_as(application):
     """login_as(UserRole.waiter): підставляє поточного користувача з цією роллю.
     Без виклику користувач неавторизований (так само, як зараз у справжньому застосунку)."""

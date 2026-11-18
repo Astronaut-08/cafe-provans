@@ -43,8 +43,9 @@ class Promotion(Base):
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     show_on_home: Mapped[bool] = mapped_column(Boolean, server_default=text('false'), nullable=False)
     pause_if_unavailable: Mapped[bool] = mapped_column(Boolean, server_default=text('true'), nullable=False)
-    # NULL = embedding ще не порахований, тому акцію можна створити до генерації
-    embedding: Mapped[list[float] | None] = mapped_column(Vector(1536), nullable=True)
+    # NULL = embedding ще не порахований, тому акцію можна створити до генерації.
+    # deferred: не вантажиться без явного запиту (див. Dish.embedding)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(1536), nullable=True, deferred=True)
     embedding_model: Mapped[str | None] = mapped_column(String(100), nullable=True)
     embedding_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     embedding_content_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
