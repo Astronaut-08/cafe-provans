@@ -3,10 +3,13 @@
 Кожна функція додає запис і робить commit: commit сесії тесту лише «відпускає» savepoint, тож
 дані видно запитам API, а в кінці тесту зовнішня транзакція все відкочує.
 """
-from datetime import date, time
+import functools
+from datetime import UTC, date, datetime, time
 from decimal import Decimal
 
-from app.db.enums import PromotionStatus
+from app.core.security import hash_password
+from app.core.tokens import create_access_token
+from app.db.enums import PromotionStatus, UserRole
 from app.db.models.allergen import Allergen
 from app.db.models.category import Category
 from app.db.models.delivery_zone import DeliveryZone
@@ -18,6 +21,7 @@ from app.db.models.location import Location
 from app.db.models.promotion import Promotion
 from app.db.models.promotion_item import PromotionItem
 from app.db.models.promotion_location import PromotionLocation
+from app.db.models.user import User
 
 
 async def make_location(
@@ -129,3 +133,35 @@ async def make_area(db, zone: DeliveryZone, city: str, street: str = '') -> Deli
     db.add(area)
     await db.commit()
     return area
+
+
+# ---------- персонал ----------
+
+PASSWORD = 'Secret123'
+
+
+@functools.cache
+def _hash(password: str) -> str:
+    # scrypt навмисно повільний; один хеш на пароль на весь прогін тестів, а не на кожного користувача
+    return hash_password(password)
+
+
+async def make_user(
+    db, login='anna', password=PASSWORD, role=UserRole.waiter, *, active=True, email=None, full_name=None,
+    must_change=False, locked_until=None, failed_attempts=0, phone=None, location=None, token_version=0,
+) -> User:
+    user = User(
+        login=login, password_hash=_hash(password), full_name=full_name or login.capitalize(), role=role,
+        is_active=active, email=email, must_change_password=must_change, locked_until=locked_until,
+        failed_login_attempts=failed_attempts, phone=phone, location_id=location.id if location else None,
+        token_version=token_version,
+    )
+    db.add(user)
+    await db.commit()
+    return user
+
+
+def bearer(user: User, now: datetime | None = None) -> dict[str, str]:
+    """Заголовок авторизації для користувача без реального входу (швидко). `now` має збігатися з set_now тесту."""
+    token, _ = create_access_token(user.id, user.token_version, now or datetime.now(UTC))
+    return {'Authorization': f'Bearer {token}'}

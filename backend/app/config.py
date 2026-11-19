@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
@@ -27,6 +27,27 @@ class Settings(BaseSettings):
     # Порожньо = CORS вимкнений (сайт і API на одному домені через nginx).
     cors_origins: Annotated[list[str], NoDecode] = []
 
+    # --- вхід персоналу (JWT) ---
+    # Обов'язковий і без значення за замовчуванням: «тимчасовий» ключ у коді рано чи пізно
+    # потрапляє в продакшн. Згенерувати: python -c "import secrets; print(secrets.token_urlsafe(48))"
+    # Змінити ключ = розлогінити всіх (старі токени перестають підходити).
+    jwt_secret: SecretStr
+    # Access-токен короткий (його не можна відкликати до завершення терміну), refresh довгий,
+    # але зберігається в БД і відкликається (вихід, зміна пароля, вимкнення працівника).
+    access_token_ttl_minutes: int = Field(default=30, ge=1)
+    refresh_token_ttl_days: int = Field(default=14, ge=1)
+
+    # --- відновлення пароля адміна: куди надсилати одноразовий код ---
+    # log: код лише пишеться в лог (для розробки). smtp: лист на email адміна.
+    # SMS додається окремим «відправником» у modules/auth/otp_sender.py, решта коду не міняється.
+    otp_sender: Literal['log', 'smtp'] = 'log'
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_user: str | None = None
+    smtp_password: SecretStr | None = None
+    smtp_from: str | None = None          # адреса відправника: Provans <no-reply@provans.example>
+    smtp_security: Literal['starttls', 'ssl', 'none'] = 'starttls'  # starttls: порт 587, ssl: порт 465
+
     @field_validator('database_url')
     @classmethod
     def database_url_must_be_asyncpg(cls, v: str) -> str:
@@ -36,6 +57,28 @@ class Settings(BaseSettings):
                 '(двигун асинхронний, «postgresql://» не підійде)'
             )
         return v
+
+    @field_validator('jwt_secret')
+    @classmethod
+    def jwt_secret_must_be_long(cls, v: SecretStr) -> SecretStr:
+        if len(v.get_secret_value()) < 32:
+            raise ValueError('JWT_SECRET має містити щонайменше 32 символи')
+        return v
+
+    @field_validator('smtp_host', 'smtp_user', 'smtp_password', 'smtp_from', mode='before')
+    @classmethod
+    def empty_smtp_value_is_none(cls, v):
+        # у .env рядок «SMTP_HOST=» дає порожній рядок: це те саме, що «не задано»
+        return None if isinstance(v, str) and not v.strip() else v
+
+    @model_validator(mode='after')
+    def check_otp_sender(self) -> 'Settings':
+        if self.otp_sender == 'smtp' and not (self.smtp_host and self.smtp_from):
+            raise ValueError('OTP_SENDER=smtp потребує SMTP_HOST і SMTP_FROM')
+        if self.is_production and self.otp_sender == 'log':
+            # одноразові коди в логах бачить будь-хто з доступом до логів
+            raise ValueError('У продакшні OTP_SENDER має бути smtp: код відновлення не можна писати в лог')
+        return self
 
     @field_validator('cors_origins', mode='before')
     @classmethod

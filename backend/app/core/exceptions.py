@@ -26,10 +26,18 @@ class AppError(Exception):
     code: str = 'internal_error'
     message: str = 'Внутрішня помилка сервера'
 
-    def __init__(self, message: str | None = None, *, code: str | None = None, details: Any = None) -> None:
+    def __init__(
+        self,
+        message: str | None = None,
+        *,
+        code: str | None = None,
+        details: Any = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         self.message = message or self.message
         self.code = code or self.code
         self.details = details
+        self.headers = headers  # додаткові заголовки відповіді (WWW-Authenticate, Retry-After)
         super().__init__(self.message)
 
 
@@ -55,6 +63,14 @@ class ConflictError(AppError):
     status_code = 409
     code = 'conflict'
     message = 'Конфлікт з поточним станом даних'
+
+
+class TooManyRequestsError(AppError):
+    """Забагато спроб (наприклад, акаунт тимчасово заблоковано після невдалих входів).
+    Скільки чекати, клієнт бачить у `details.retry_after_seconds` і в заголовку Retry-After."""
+    status_code = 429
+    code = 'too_many_requests'
+    message = 'Забагато спроб, спробуйте пізніше'
 
 
 class UnprocessableError(AppError):
@@ -84,7 +100,7 @@ def error_response(
 async def _handle_app_error(request: Request, exc: AppError) -> JSONResponse:
     if exc.status_code >= 500:
         log.error('app_error', code=exc.code, message=exc.message, exc_info=exc)
-    return error_response(request, exc.status_code, exc.code, exc.message, exc.details)
+    return error_response(request, exc.status_code, exc.code, exc.message, exc.details, headers=exc.headers)
 
 
 _DEFAULT_MESSAGES = {

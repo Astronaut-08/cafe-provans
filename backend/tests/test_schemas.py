@@ -41,10 +41,14 @@ def test_admin_may_have_no_location():
 def test_user_read_never_exposes_password_material():
     assert not {'password', 'password_hash'} & set(UserRead.model_fields)
     row = type('Row', (), dict(
-        id=1, login='anna', full_name='Анна', phone=None, role=UserRole.chef,
-        location_id=None, is_active=True, created_at=datetime(2026, 1, 1), password_hash='SECRET',
+        id=1, login='anna', full_name='Анна', phone=None, email=None, role=UserRole.chef,
+        location_id=None, is_active=True, must_change_password=False, locked_until=None,
+        created_at=datetime(2026, 1, 1), password_hash='SECRET', token_version=7,
     ))()
-    assert 'SECRET' not in UserRead.model_validate(row).model_dump_json()
+    dumped = UserRead.model_validate(row).model_dump_json()
+    assert 'SECRET' not in dumped
+    # службові поля входу теж не віддаємо
+    assert not {'token_version', 'failed_login_attempts'} & set(UserRead.model_fields)
 
 
 def test_user_update_cannot_null_required_fields_but_can_clear_phone():

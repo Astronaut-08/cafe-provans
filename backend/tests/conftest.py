@@ -51,6 +51,9 @@ TEST_DATABASE_URL = _resolve_test_url()
 os.environ['DATABASE_URL'] = TEST_DATABASE_URL
 os.environ['ENVIRONMENT'] = 'test'
 os.environ.setdefault('LOG_LEVEL', 'WARNING')
+# Ключ підпису токенів лише для тестів. Задаємо жорстко (не setdefault): тест не має залежати від справжнього .env
+os.environ['JWT_SECRET'] = 'test-only-jwt-secret-not-for-production-0123456789'
+os.environ['OTP_SENDER'] = 'log'
 os.environ.pop('CORS_ORIGINS', None)
 
 
@@ -77,6 +80,17 @@ def _new_session(connection) -> AsyncSession:
     # create_savepoint: commit() сесії лише «відпускає» savepoint (дані лишаються в зовнішній
     # транзакції), а close() без commit() відкочує його, як у справжньому застосунку
     return AsyncSession(bind=connection, join_transaction_mode='create_savepoint', expire_on_commit=False)
+
+
+@pytest.fixture(autouse=True)
+def _cheap_password_hashing(request, monkeypatch):
+    """scrypt із бойовими параметрами хешує ~0,2 с, а тести входу роблять це сотні разів. У тестах ставимо
+    мінімальну вартість (N=2^10); логіка та сама. Справжні параметри перевіряє лише test_security."""
+    if request.module.__name__.endswith('test_security'):
+        return
+    from app.core import security
+
+    monkeypatch.setattr(security, '_N', 2 ** 10)
 
 
 @pytest_asyncio.fixture

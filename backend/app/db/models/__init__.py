@@ -3,6 +3,8 @@ from app.db.base import Base
 # location / staff group
 from app.db.models.location import Location
 from app.db.models.user import User
+from app.db.models.refresh_token import RefreshToken
+from app.db.models.password_reset_otp import PasswordResetOtp
 from app.db.models.delivery_zone import DeliveryZone
 from app.db.models.delivery_zone_area import DeliveryZoneArea
 
@@ -36,7 +38,7 @@ from app.db.models.payment import Payment
 
 __all__ = [
     'Base',
-    'Location', 'User', 'DeliveryZone', 'DeliveryZoneArea',
+    'Location', 'User', 'RefreshToken', 'PasswordResetOtp', 'DeliveryZone', 'DeliveryZoneArea',
     'Category', 'Allergen', 'Dish', 'DishLocation', 'DishAllergen',
     'Customer', 'CustomerAddress',
     'Promotion', 'PromotionItem', 'PromotionLocation',
