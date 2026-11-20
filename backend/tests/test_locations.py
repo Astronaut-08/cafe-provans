@@ -27,8 +27,8 @@ async def test_list_does_not_expose_internal_fields(client, db_session):
     row = (await client.get(URL)).json()[0]
     assert 'is_active' not in row
     assert set(row) == {
-        'id', 'name', 'city', 'address', 'phone', 'instagram', 'opening_time', 'closing_time', 'timezone',
-        'is_open_now',
+        'id', 'name', 'city', 'address', 'phone', 'instagram', 'image_url', 'opening_time', 'closing_time',
+        'timezone', 'is_open_now',
     }
 
 

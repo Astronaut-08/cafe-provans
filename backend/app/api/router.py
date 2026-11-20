@@ -4,6 +4,8 @@ from app.modules.allergens.router import router as allergens_router
 from app.modules.auth.router import router as auth_router
 from app.modules.categories.router import router as categories_router
 from app.modules.delivery.router import router as delivery_router
+from app.modules.dishes.router import router as dishes_router
+from app.modules.locations.admin_router import router as locations_admin_router
 from app.modules.locations.router import router as locations_router
 from app.modules.menu.router import router as menu_router
 from app.modules.promotions.router import router as promotions_router
@@ -21,3 +23,5 @@ api_router.include_router(allergens_router)
 api_router.include_router(categories_router)
 api_router.include_router(auth_router)
 api_router.include_router(users_router)
+api_router.include_router(dishes_router)
+api_router.include_router(locations_admin_router)

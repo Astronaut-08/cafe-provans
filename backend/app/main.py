@@ -10,6 +10,7 @@ from app.api.router import api_router
 from app.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import configure_logging
+from app.core.media import MEDIA_URL, MediaFiles
 from app.core.middleware import REQUEST_ID_HEADER, RequestContextMiddleware
 from app.db.session import engine
 
@@ -54,6 +55,8 @@ def create_app() -> FastAPI:
 
     app.include_router(health.router)
     app.include_router(api_router)
+    # Фото страв і закладів із диска сервера. check_dir=False: папка з'являється при першому завантаженні фото.
+    app.mount(MEDIA_URL, MediaFiles(directory=settings.media_dir, check_dir=False), name='media')
 
     @app.get('/', include_in_schema=False)
     async def root():

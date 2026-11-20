@@ -9,15 +9,18 @@ from decimal import Decimal
 
 from app.core.security import hash_password
 from app.core.tokens import create_access_token
-from app.db.enums import PromotionStatus, UserRole
+from app.db.enums import FulfillmentType, OrderSource, PromotionStatus, UserRole
 from app.db.models.allergen import Allergen
 from app.db.models.category import Category
+from app.db.models.customer import Customer
 from app.db.models.delivery_zone import DeliveryZone
 from app.db.models.delivery_zone_area import DeliveryZoneArea
 from app.db.models.dish import Dish
 from app.db.models.dish_allergen import DishAllergen
 from app.db.models.dish_location import DishLocation
 from app.db.models.location import Location
+from app.db.models.order import Order
+from app.db.models.order_item import OrderItem
 from app.db.models.promotion import Promotion
 from app.db.models.promotion_item import PromotionItem
 from app.db.models.promotion_location import PromotionLocation
@@ -141,6 +144,22 @@ PASSWORD = 'Secret123'
 
 
 @functools.cache
+async def make_order_with(db, dish: Dish, location: Location) -> Order:
+    """Самовивізне замовлення з однією позицією-стравою: страва після цього «має історію» і не видаляється."""
+    customer = Customer(phone='+380501234567')
+    db.add(customer)
+    await db.flush()
+    order = Order(
+        order_number='T-1', location_id=location.id, customer_id=customer.id, source=OrderSource.website,
+        fulfillment_type=FulfillmentType.pickup, subtotal_price=dish.price, total_price=dish.price,
+    )
+    db.add(order)
+    await db.flush()
+    db.add(OrderItem(order_id=order.id, dish_id=dish.id, name=dish.name, unit_price=dish.price, quantity=1))
+    await db.commit()
+    return order
+
+
 def _hash(password: str) -> str:
     # scrypt навмисно повільний; один хеш на пароль на весь прогін тестів, а не на кожного користувача
     return hash_password(password)

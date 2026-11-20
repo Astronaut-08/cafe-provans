@@ -80,6 +80,7 @@ class LocationRead(BaseModel):
     delivery_map_url: str | None
     phone: str | None
     instagram: str | None
+    image_url: str | None
     opening_time: time | None
     closing_time: time | None
     timezone: str
@@ -96,6 +97,7 @@ class LocationPublic(BaseModel):
     address: str | None
     phone: str | None
     instagram: str | None
+    image_url: str | None
     opening_time: time | None
     closing_time: time | None
     timezone: str

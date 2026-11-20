@@ -12,7 +12,10 @@
     docker compose exec backend pytest
 """
 import asyncio
+import atexit
 import os
+import shutil
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -54,6 +57,10 @@ os.environ.setdefault('LOG_LEVEL', 'WARNING')
 # Ключ підпису токенів лише для тестів. Задаємо жорстко (не setdefault): тест не має залежати від справжнього .env
 os.environ['JWT_SECRET'] = 'test-only-jwt-secret-not-for-production-0123456789'
 os.environ['OTP_SENDER'] = 'log'
+# Фото в тестах пишемо у тимчасову папку, а не в справжню backend/media
+MEDIA_ROOT = Path(tempfile.mkdtemp(prefix='provans-test-media-'))
+os.environ['MEDIA_DIR'] = str(MEDIA_ROOT)
+atexit.register(shutil.rmtree, MEDIA_ROOT, ignore_errors=True)
 os.environ.pop('CORS_ORIGINS', None)
 
 
@@ -91,6 +98,14 @@ def _cheap_password_hashing(request, monkeypatch):
     from app.core import security
 
     monkeypatch.setattr(security, '_N', 2 ** 10)
+
+
+@pytest.fixture(autouse=True)
+def media_root():
+    """Тимчасова папка з фото; після кожного тесту порожня, щоб тести не бачили файли один одного."""
+    yield MEDIA_ROOT
+    for child in MEDIA_ROOT.iterdir():
+        shutil.rmtree(child) if child.is_dir() else child.unlink()
 
 
 @pytest_asyncio.fixture
@@ -153,14 +168,17 @@ def set_now(application):
 
 @pytest.fixture
 def login_as(application):
-    """login_as(UserRole.waiter): підставляє поточного користувача з цією роллю.
+    """login_as(UserRole.waiter, location_id=None): підставляє поточного користувача з цією роллю (і закладом).
     Без виклику користувач неавторизований (так само, як зараз у справжньому застосунку)."""
     from app.db.enums import UserRole
     from app.db.models.user import User
     from app.dependencies import get_current_user
 
-    def _login(role: UserRole) -> None:
-        user = User(id=1, login='tester', password_hash='x', full_name='Tester', role=role, is_active=True)
+    def _login(role: UserRole, location_id: int | None = None) -> None:
+        user = User(
+            id=1, login='tester', password_hash='x', full_name='Tester', role=role, is_active=True,
+            location_id=location_id,
+        )
         application.dependency_overrides[get_current_user] = lambda: user
 
     return _login

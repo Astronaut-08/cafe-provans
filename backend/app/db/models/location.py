@@ -18,6 +18,8 @@ class Location(Base):
     delivery_map_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     instagram: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    # Фото закладу на сайті: адреса виду /media/locations/... (файл лежить на диску сервера, див. core/media.py)
+    image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     opening_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     closing_time: Mapped[time | None] = mapped_column(Time, nullable=True)
     timezone: Mapped[str] = mapped_column(String(50), server_default='Europe/Kyiv', nullable=False)

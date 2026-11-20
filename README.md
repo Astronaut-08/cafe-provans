@@ -89,6 +89,37 @@ docker compose exec backend python -m app.db.create_admin --login admin --reset-
 
 **Коди помилок для фронтенду:** `not_authenticated` / `invalid_token` (потрібен вхід), `token_expired` (спробувати `refresh`), `invalid_credentials`, `account_locked`, `account_disabled`, `password_change_required`, `invalid_refresh_token` (розлогінити), `invalid_otp`, `invalid_current_password`, `same_password`.
 
+### Меню: керування стравами, закладами і фото (адмін)
+
+Категорії меню керуються через `/categories` (вже було). Страви, заклади й фото:
+
+| Запит | Хто | Що робить |
+|---|---|---|
+| `GET /dishes` | admin | усі страви, навіть ті, що ніде не продаються. Фільтри `category_id`, `location_id`, `is_available`, сторінки `limit`/`offset` |
+| `POST /dishes` | admin | створити страву: категорія, назва, ціна, опис, вага, `allergen_ids`, `locations` |
+| `GET/PATCH/DELETE /dishes/{id}` | admin | одна страва; зміна лише переданих полів (`allergen_ids` замінює весь набір); видалення |
+| `PUT /dishes/{id}/locations/{location_id}` | admin | додати страву в заклад або змінити її там: `is_available`, `price_override` (власна ціна закладу; без неї діє базова) |
+| `DELETE /dishes/{id}/locations/{location_id}` | admin | прибрати страву з меню закладу |
+| `PATCH /locations/{id}/menu/{dish_id}/availability` `{is_available}` | waiter, admin | **стоп-лист**: страва закінчилась / знову є. Офіціант лише у своєму закладі (`users.location_id`), адмін у будь-якому |
+| `POST /dishes/{id}/image`, `DELETE /dishes/{id}/image` | admin | фото страви |
+| `GET/POST /admin/locations`, `GET/PATCH /admin/locations/{id}` | admin | усі заклади (і неактивні); створення (одразу з зеленою/жовтою/червоною зонами доставки); зміна. Заклад не видаляється, а вимикається `is_active: false` |
+| `POST /admin/locations/{id}/image`, `DELETE ...` | admin | фото закладу |
+
+Як це влаштовано:
+
+- Страва, створена без `locations`, з'являється **в усіх наявних закладах**. Щоб додати лише в деякі, передайте `locations: [{"location_id": 1, "price_override": 200}]`, а `locations: []` означає «поки ніде».
+- Двох рівнів «доступності» два: `dishes.is_available` (адмін знімає страву з продажу всюди) і `dish_locations.is_available` (стоп-лист конкретного закладу, його міняє офіціант). У меню гостя страва доступна, лише якщо увімкнені обидва.
+- Страву, що є в замовленнях чи акціях, видалити не можна (409 `dish_in_use`): зніміть її з продажу або приберіть із закладів. Історія замовлень лишається цілою.
+- Ціна в гривнях, до двох знаків після коми, не більше 100 000.
+
+**Фото.** Зберігаються на диску того ж сервера, де працює код: у папці `backend/media/` (`dishes/`, `locations/`). У БД лежить лише адреса виду `/media/dishes/dish-7-3fa9c2d41b0e8a55.jpg`, відкривається вона без входу.
+
+- Формати: JPEG, PNG, WebP, до 5 МБ. Тип визначається за вмістом файлу, а не за назвою; SVG і будь-що інше відхиляється (422 `unsupported_image`, `image_too_large`). Ім'я файлу генерує сервер, назва від користувача на диск не потрапляє.
+- Нове фото замінює старе (старий файл видаляється), видалення страви видаляє її фото. Папка `backend/media/` у `.gitignore`, **її треба включати в резервні копії разом із БД**, бо в git фото не лежать.
+- Папка підключена в контейнер разом із кодом (`./backend:/app`), тож фото переживають перезбірку образу. Інше місце можна задати змінною `MEDIA_DIR`.
+- `nginx/conf.d/default.conf` має `client_max_body_size 6m`, інакше nginx відхиляв би файли понад 1 МБ ще до backend.
+- Фронтенд має брати адреси `/media/...` з того ж домену, що й `/api`: якщо фронтенд віддається окремим nginx, там треба проксіювати `/media/` на backend так само, як `/api/`.
+
 ### Публічне API для сайту (без входу)
 
 Після оновлення коду один раз застосувати міграцію: `docker compose exec backend alembic upgrade head`.
