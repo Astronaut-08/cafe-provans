@@ -50,6 +50,8 @@ class DeliveryCheck(BaseModel):
     deliverable: bool
     zone: ZoneBrief | None
     delivery_price: Money | None
+    # id зони потрібен лише серверу (замовлення запам'ятовує зону); у відповідь API він не потрапляє (exclude)
+    zone_id: int | None = Field(default=None, exclude=True)
     # якщо deliverable = false:
     #   outside_zones    адреси немає в жодній зоні, лише самовивіз
     #   not_configured   для закладу ще не внесено жодної зони (адрес або контурів), визначити неможливо

@@ -23,6 +23,7 @@ def _delivered(zone) -> DeliveryCheck:
         deliverable=True,
         zone=ZoneBrief(code=zone.code, name=zone.name, min_order_amount=zone.min_order_amount),
         delivery_price=DELIVERY_PRICE,
+        zone_id=zone.id,
     )
 
 

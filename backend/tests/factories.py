@@ -143,7 +143,6 @@ async def make_area(db, zone: DeliveryZone, city: str, street: str = '') -> Deli
 PASSWORD = 'Secret123'
 
 
-@functools.cache
 async def make_order_with(db, dish: Dish, location: Location) -> Order:
     """Самовивізне замовлення з однією позицією-стравою: страва після цього «має історію» і не видаляється."""
     customer = Customer(phone='+380501234567')
@@ -160,6 +159,7 @@ async def make_order_with(db, dish: Dish, location: Location) -> Order:
     return order
 
 
+@functools.cache
 def _hash(password: str) -> str:
     # scrypt навмисно повільний; один хеш на пароль на весь прогін тестів, а не на кожного користувача
     return hash_password(password)

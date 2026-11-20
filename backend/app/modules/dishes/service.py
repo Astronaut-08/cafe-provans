@@ -12,9 +12,9 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ConflictError, ForbiddenError, NotFoundError, UnprocessableError
+from app.core.access import ensure_location_access
+from app.core.exceptions import ConflictError, NotFoundError, UnprocessableError
 from app.core.media import clear_image, delete_image, read_image_upload, replace_image
-from app.db.enums import UserRole
 from app.db.models.allergen import Allergen
 from app.db.models.category import Category
 from app.db.models.dish import Dish
@@ -199,11 +199,7 @@ class DishService:
         self, actor: User, location_id: int, dish_id: int, is_available: bool,
     ) -> DishLocationRead:
         """Стоп-лист: вмикає/вимикає страву в закладі. Офіціант керує лише СВОЇМ закладом, адмін будь-яким."""
-        if actor.role is not UserRole.admin:
-            if actor.location_id is None:
-                raise ForbiddenError('Вас не прив\'язано до закладу, зверніться до адміністратора', code='no_location')
-            if actor.location_id != location_id:
-                raise ForbiddenError('Можна змінювати лише страви свого закладу', code='other_location')
+        ensure_location_access(actor, location_id, other_location_message='Можна змінювати лише страви свого закладу')
         row = (await self.session.execute(
             update(DishLocation)
             .where(DishLocation.dish_id == dish_id, DishLocation.location_id == location_id)

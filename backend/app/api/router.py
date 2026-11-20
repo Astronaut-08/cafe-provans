@@ -8,6 +8,7 @@ from app.modules.dishes.router import router as dishes_router
 from app.modules.locations.admin_router import router as locations_admin_router
 from app.modules.locations.router import router as locations_router
 from app.modules.menu.router import router as menu_router
+from app.modules.orders.router import router as orders_router
 from app.modules.promotions.router import router as promotions_router
 from app.modules.users.router import router as users_router
 
@@ -25,3 +26,4 @@ api_router.include_router(auth_router)
 api_router.include_router(users_router)
 api_router.include_router(dishes_router)
 api_router.include_router(locations_admin_router)
+api_router.include_router(orders_router)
